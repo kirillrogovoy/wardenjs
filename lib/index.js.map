@@ -1,0 +1,1 @@
+{"version":3,"sources":["src/index.js"],"names":[],"mappings":";;QAAO,6BAA6B;;QAC7B,gBAAgB;;+BAEY,oBAAoB;;QAIhD,UAAU;;AAFjB,qBAFQ,oBAAoB,GAEN,CAAC","file":"src/index.js","sourcesContent":["import 'source-map-support/register';\nimport 'babel/polyfill';\n\nimport {installErrorListener} from './errorHandling.js';\n\ninstallErrorListener();\n\nimport './cli.js';\n"]}

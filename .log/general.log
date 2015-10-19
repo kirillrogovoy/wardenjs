@@ -1,0 +1,1 @@
+{"name":"APP","hostname":"f-desktop","pid":4575,"level":50,"err":{"message":"test","name":"Error","stack":"Error: test\n    at Error (native)\n    at [object Object]._onTimeout (/server/wardenjs/lib/scenarios/src/scenarios/wardenTest2.js:3:11)\n    at Timer.listOnTimeout (timers.js:89:15)"},"msg":"test","time":"2015-10-19T10:50:45.871Z","v":0}
