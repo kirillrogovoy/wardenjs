@@ -19,11 +19,11 @@ describe('scenarios runner', () => {
     const warningMessage = 'warning, dude';
     const infoMessage = 'info, dude';
     suspend.run(function*() {
-      const result = yield run((control) => {
+      const result = yield run({ fn: (control) => {
         control.warning(warningMessage);
         control.info(infoMessage);
         control.success();
-      });
+      }, name: 'test' });
       
       check.object(result);
       assert.deepEqual([warningMessage], result.warning);
@@ -37,13 +37,13 @@ describe('scenarios runner', () => {
   
   it('should run correctly on double finish', (done) => {
     suspend.run(function*() {
-      const result = yield run((control) => {
+      const result = yield run({ fn: (control) => {
         control.failure();
        
         // scenario has finished, further control calls are ignored
         control.success();
         control.warning('test');
-      });
+      }, name: 'test' });
 
       assert.strictEqual('failure', result.status);
       assert.deepEqual([], result.warning);
@@ -55,12 +55,12 @@ describe('scenarios runner', () => {
 
   it('should run with bad async scenario', (done) => {
     suspend.run(function*() {
-      const result = yield run((control) => {
+      const result = yield run({ fn: (control) => {
         setTimeout(() => {
           control.success();
         }, 10);
         throw Error('error');
-      });
+      }, name: 'test' });
 
       assert(result.status, 'failure');
       return result;
@@ -73,9 +73,9 @@ describe('scenarios runner', () => {
   it('scenario with an error should fail', (done) => {
     suspend.run(function*() {
       const error = Error('oh my god');
-      const result = yield run(() => {
+      const result = yield run({ fn: () => {
         throw error;
-      });
+      }, name: 'test' });
       assert.strictEqual('failure', result.status);
       assert(result.finalMessage.startsWith('Scenario is broken!'));
     }, (err) => {
@@ -86,60 +86,60 @@ describe('scenarios runner', () => {
   
   it('files: bad input, invalid type', (done) => {
     suspend.run(function*() {
-      yield run((control) => {
+      yield run({ fn: (control) => {
         control.file('test', 1, 'application/octet-stream')
           .catch((err) => {
             check.error(err);
             done();
           });
-      });
+      }, name: 'test' });
     });
   });
 
   it('files: bad input, non-absolute path', (done) => {
     suspend.run(function*() {
-      yield run((control) => {
+      yield run({ fn: (control) => {
         control.file('test', 'tmp/non-existing-file', 'application/octet-stream')
           .catch((err) => {
             check.error(err);
             done();
           });
-      });
+      }, name: 'test' });
     });
   });
 
   it('files: bad input, non-existing file', (done) => {
     suspend.run(function*() {
-      yield run((control) => {
+      yield run({ fn: (control) => {
         control.file('test', '/tmp/non-existing-file', 'application/octet-stream')
           .catch((err) => {
             check.error(err);
             done();
           });
-      });
+      }, name: 'test' });
     });
   });
 
   it('files: bad media', (done) => {
     suspend.run(function*() {
-      yield run((control) => {
+      yield run({ fn: (control) => {
         control.file('test', fixtureFile, 'application/bad-type')
           .catch((err) => {
             check.error(err);
             done();
           });
-      });
+      }, name: 'test' });
     });
   });
 
   it('files: good input, file path', (done) => {
     const media = 'image/png';
     suspend.run(function*() {
-      const result = yield run(suspend.fn(function*(control) {
+      const result = yield run({ fn: suspend.fn(function*(control) {
         const savingResult = yield control.file('test', fixtureFile, media);
         assert(savingResult);
         control.success();
-      }));
+      }), name: 'test' });
       assert.equal(result.files.length, 1);
       assert.equal(result.files[0].name, 'test');
       assert.equal(result.files[0].media, media);
@@ -151,12 +151,12 @@ describe('scenarios runner', () => {
   it('files: good input, buffer', (done) => {
     const media = 'image/png';
     suspend.run(function*() {
-      const result = yield run(suspend.fn(function*(control) {
+      const result = yield run({ fn: suspend.fn(function*(control) {
         const content = yield fs.readFile(fixtureFile, suspend.resume());
         const savingResult = yield control.file('test', content, media);
         assert(savingResult);
         control.success();
-      }));
+      }), name: 'test' });
       assert.equal(result.files.length, 1);
       assert.equal(result.files[0].name, 'test');
       assert.equal(result.files[0].media, media);

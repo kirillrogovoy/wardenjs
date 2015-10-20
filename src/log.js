@@ -2,9 +2,7 @@ import bunyan from 'bunyan';
 import path from 'path';
 import PrettyStream from 'bunyan-prettystream';
 
-let prettyStdOut = new PrettyStream({
-  mode: 'dev'
-});
+const prettyStdOut = new PrettyStream({ mode: 'dev' });
 prettyStdOut.pipe(process.stdout);
 
 export default bunyan.createLogger({

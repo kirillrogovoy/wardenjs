@@ -5,7 +5,8 @@ import suspend from 'suspend';
 export default function check(commander) {
   optionRequired('config');
   suspend.run(function*() {
-    config.validate(yield config.load(commander.config));
+    const configObj = yield config.load(commander.config);
+    config.validate(configObj);
     console.log('All is OK!');
   });
 }

@@ -1,9 +1,10 @@
-import {check} from '../util.js';
+import {check, root} from '../util.js';
 import assert from 'assert';
 import path from 'path';
 import fs from 'fs';
 import suspend from 'suspend';
 import mime from 'mime';
+import {fork} from 'child_process';
 
 export function load(filePath) {
   let fullPath;
@@ -17,7 +18,8 @@ export function load(filePath) {
 }
 
 export function run(scenario) {
-  check.function(scenario);
+  check.function(scenario.fn);
+  check.string(scenario.name);
   return new Promise((resolve) => {
     let timeoutId;
     const result = {
@@ -25,7 +27,8 @@ export function run(scenario) {
       warning: [],
       info: [],
       status: null,
-      files: []
+      files: [],
+      name: scenario.name
     };
     
     const control = {
@@ -119,10 +122,26 @@ export function run(scenario) {
 
     process.on('uncaughtException', onErrorHandler);
     try {
-      scenario(control);
+      scenario.fn(control);
     } catch (e) {
       onError(e);
     }
   });
 }
 
+export function runForked(scenarioFile) {
+  check.string(scenarioFile);
+  return new Promise((resolve, reject) => {
+    const child = fork(path.join(root, 'index.js'), ['run', '--path', scenarioFile]);
+    child.on('error', reject);
+    child.on('message', (result) => {
+      if (result.type === 'SCENARIO_RESULT')
+        resolve(result.data);
+    });
+  });
+
+}
+
+export function runGroup(scenarioFiles) {
+  return Promise.all(scenarioFiles.map(runForked));
+}

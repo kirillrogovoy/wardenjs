@@ -23,10 +23,28 @@ export function getScenarioFiles(scenarioDirs) {
   return files;
 }
 
+export function getGroups(groups, scenarioFiles) {
+  if (groups == null) return {};
+  
+  check.object(groups);
+  for (let groupName of Object.keys(groups)) {
+    const group = groups[groupName];
+    check.array.of.string(group);
+    groups[groupName] = group.map((filePattern) => {
+      return scenarioFiles.find((file) => {
+        return (new RegExp(filePattern).test(file));
+      });
+    });
+  }
+  
+  return groups;
+}
+
 export function validate(config) {
   check.object(config);
   check.array.of.string(config.scenarioDirs, 'Malformed config.scenarioDirs');
-  getScenarioFiles(config.scenarioDirs);
+  const scenarioFiles = getScenarioFiles(config.scenarioDirs);
+  getGroups(config.groups, scenarioFiles);
 }
 
 export const load = suspend.promise(function*(relativePath) {

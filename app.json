@@ -1,6 +1,11 @@
 {
-  "a": "b",
   "scenarioDirs": [
     "scenarios/"
-  ]
+  ],
+  "groups": {
+    "test": [
+      "wardenTest",
+      "wardenTest2"
+    ]
+  }
 }

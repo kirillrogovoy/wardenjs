@@ -62,3 +62,19 @@ describe('scenario files loading', () => {
     ], files);
   });
 });
+
+describe('groups loading', () => {
+  it('sholud detect scenario files for the group correctly', () => {
+    const files = config.getScenarioFiles(['../test/fixture/scenariosDir']);
+    const dir = path.join(root, '../test');
+    
+    assert.deepEqual(config.getGroups({
+      test: ['file1', 'file3']
+    }, files), {
+      test: [
+        dir + '/fixture/scenariosDir/file1.js',
+        dir + '/fixture/scenariosDir/file3.js'
+      ]
+    });
+  });
+});

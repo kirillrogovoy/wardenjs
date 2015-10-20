@@ -9,15 +9,15 @@ import crypto from 'crypto';
 import path from 'path';
 import mime from 'mime';
 
-export default function controllerRun(commander) {
+export default function (commander) {
   optionRequired('path');
   const filePath = commander.path;
   suspend.run(function*() {
     console.log(`Trying to load the scenario under the ${filePath}`);
     const scenario = load(filePath);
     console.log('Loaded! Trying to start the scenario...');
-    if (typeof scenario !== 'function') {
-      console.log('Scenario should be a function!');
+    if (typeof scenario.fn !== 'function') {
+      console.error('Scenario should be a function!');
       process.exit(1);
     }
 
@@ -25,7 +25,7 @@ export default function controllerRun(commander) {
       console.log('\n' + `===== ${message} =====`.bold + '\n');
     }
 
-    formattedPrint(`Start: ${filePath}`);
+    formattedPrint(`Start: ${scenario.name} (${filePath})`);
     
     const result = yield run(scenario);
     
@@ -68,6 +68,17 @@ export default function controllerRun(commander) {
       );
     }
     
-    formattedPrint(`End: ${filePath}`);
+    formattedPrint(`End: ${scenario.name} (${filePath})`);
+    
+    /**
+     * If it's a child process, let's send the result to the master
+     * process through IPC
+     */
+    if (process.send) {
+      process.send({
+        type: 'SCENARIO_RESULT',
+        data: result
+      });
+    }
   });
 }

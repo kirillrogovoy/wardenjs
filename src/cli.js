@@ -22,11 +22,14 @@ export function optionRequired(name) {
 }
 
 commander.version(packageJson.version);
-commander.option('-c, --config <path>', 'Path to the config file');
-commander.option('-p, --path <path>', 'Path to the scenario file');
+commander.option('--config <config>', 'Path to the config file');
+commander.option('--path <path>', 'Path to the scenario file');
+commander.option('--group <name>', 'The name of the group of scenarios to run');
+commander.option('--run-mode <mode>', 'Mode of running multiple scenarios. async (default) | sync');
 command(commander, 'check', 'Check whether all is ok');
 command(commander, 'list-scenarios', 'Get list of the all available scenarios');
 command(commander, 'run', 'Run a scenario and print the results');
+command(commander, 'run-group', 'Run a group of scenarios and print the results');
 const program = commander.parse(process.argv);
 if (typeof program.args[0] !== 'object') {
   console.log('Wrong usage. Please, check --help');
