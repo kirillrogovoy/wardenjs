@@ -132,11 +132,14 @@ export function run(scenario) {
 export function runForked(scenarioFile) {
   check.string(scenarioFile);
   return new Promise((resolve, reject) => {
-    const child = fork(path.join(root, 'index.js'), ['run', '--path', scenarioFile]);
+    const child = fork(path.join(root, 'index.js'), ['run', '--path', scenarioFile], {
+      silent: global.silentFork !== undefined ? global.silentFork : false
+    });
     child.on('error', reject);
     child.on('message', (result) => {
-      if (result.type === 'SCENARIO_RESULT')
+      if (result.type === 'SCENARIO_RESULT') {
         resolve(result.data);
+      }
     });
   });
 

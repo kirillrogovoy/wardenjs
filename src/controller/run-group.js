@@ -30,5 +30,20 @@ export default suspend.fn(function*(commander) {
       results.push(yield runForked(scenarioFile));
     }
   }
-  console.log(results);
+  
+  const success = results.filter((r) => r.status === 'success');
+  const failure = results.filter((r) => r.status === 'failure');
+  
+  console.log(
+    `\nGroup run has been finished! ${results.length} scenarios have been run.`.blue,
+    `\n${success.length} passed`.green,
+    `\n${failure.length} failed`.red
+  );
+  
+  if (failure.length) {
+    console.log(
+      'Failed tests are:\n  ',
+      failure.map((f) => f.name.red).join(',  \n')
+    );
+  }
 });

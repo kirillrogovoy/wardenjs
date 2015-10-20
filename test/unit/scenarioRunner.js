@@ -3,10 +3,12 @@ import assert from 'assert';
 import path from 'path';
 import fs from 'fs';
 import {check, root} from '../../src/util.js';
-import {run} from '../../src/component/scenarioRunner.js';
+import {run, runForked, runGroup} from '../../src/component/scenarioRunner.js';
 
 const fixtureDir = path.join(root, '../test/fixture');
 const fixtureFile = path.join(fixtureDir, '/dog.png');
+
+global.silentFork = true;
 
 describe('scenarios runner', () => {
   it('should fail on bad input', () => {
@@ -163,5 +165,38 @@ describe('scenarios runner', () => {
       assert(Buffer.prototype.isPrototypeOf(result.files[0].content));
       done();
     });
+  });
+  
+});
+
+const scenarioFiles = [
+  path.join(root, '../test/fixture/scenariosDir/file1.js'),
+  path.join(root, '../test/fixture/scenariosDir/file2.js')
+];
+
+it('should run forked scenario', (done) => {
+  suspend.run(function*() {
+    const result = yield runForked(scenarioFiles[0]);
+
+    check.object(result);
+    assert.strictEqual('success', result.status);
+  }, (err) => {
+    check.null(err);
+    done();
+  });
+});
+
+it('should run scenario group', (done) => {
+  suspend.run(function*() {
+    const results = yield runGroup(scenarioFiles);
+
+    check.array.of.object(results);
+    assert.strictEqual('success', results[0].status);
+    assert.strictEqual('core.fixture.file1', results[0].name);
+    assert.strictEqual('success', results[1].status);
+    assert.strictEqual('core.fixture.file2', results[1].name);
+  }, (err) => {
+    check.null(err);
+    done();
   });
 });
