@@ -7,7 +7,7 @@ export default function watch(commander) {
   suspend.run(function*() {
     const configObj = yield config.load(commander.config);
     config.validate(configObj);
-    const db = yield require('../component/daemon/postgres.js')(configObj.postgres);
+    const db = require('../component/daemon/postgres.js')(configObj.postgres);
     console.log('got db');
   });
 }

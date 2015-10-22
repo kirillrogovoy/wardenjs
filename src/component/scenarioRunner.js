@@ -130,7 +130,6 @@ export function run(scenario, config) {
 }
 
 export function runForked(scenarioFile, configPath) {
-  console.log(configPath);
   check.string(scenarioFile);
   return new Promise((resolve, reject) => {
     const child = fork(

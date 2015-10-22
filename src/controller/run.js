@@ -86,7 +86,7 @@ export default function (commander) {
     }
     
     if (commander.save) {
-      const db = yield require('../component/daemon/postgres.js')(configObj.postgres);
+      const db = require('../component/daemon/postgres.js')(configObj.postgres);
 
       const transaction = yield db.transaction();
       const resultRow = yield db.models.result.create({

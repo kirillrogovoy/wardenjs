@@ -1,3 +1,8 @@
+var mkdirp = require('mkdirp');
+['.log', 'lib'].forEach(function(dir) {
+  mkdirp(dir);
+});
+
 var src = 'src/**/*.js';
 var testSrc = 'test/unit/**/*.js';
 var srcParts = ['src/', '**/*.js'];

@@ -1,1 +1,0 @@
-{"version":3,"sources":["src/globals.js"],"names":[],"mappings":";;;;;;;;0BAAuB,aAAa;;;;AAC7B,MAAM,IAAI,GAAG,SAAS,CAAC;QAAjB,IAAI,GAAJ,IAAI;AACV,MAAM,KAAK,GAAG,wBAAW,MAAM,CAAC;QAA1B,KAAK,GAAL,KAAK","file":"src/globals.js","sourcesContent":["import checkTypes from 'check-types';\nexport const root = __dirname;\nexport const check = checkTypes.assert;\n"]}
