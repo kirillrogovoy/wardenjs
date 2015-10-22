@@ -3,6 +3,7 @@ import path from 'path';
 import suspend from 'suspend';
 import assert from 'assert';
 import {root, check} from '../util.js';
+import readdirRecursive from 'recursive-readdir-sync';
 
 export function getScenarioFiles(scenarioDirs) {
   check.array.of.string(scenarioDirs);
@@ -15,9 +16,9 @@ export function getScenarioFiles(scenarioDirs) {
     
     assert(fs.statSync(fullPath).isDirectory(), `${fullPath} is not a directory!`);
     files = files.concat(
-      fs.readdirSync(fullPath)
+      readdirRecursive(fullPath)
         .filter((item) => /^.*\.js$/.test(item))
-        .map((item) => path.join(fullPath, item))
+        .map((item) => path.join(item))
     );
   }
   return files;

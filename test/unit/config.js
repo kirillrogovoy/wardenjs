@@ -58,7 +58,8 @@ describe('scenario files loading', () => {
     assert.deepEqual([
       dir + '/fixture/scenariosDir/file1.js',
       dir + '/fixture/scenariosDir/file2.js',
-      dir + '/fixture/scenariosDir/file3.js'
+      dir + '/fixture/scenariosDir/file3.js',
+      dir + '/fixture/scenariosDir/inner/file4.js'
     ], files);
   });
 });
