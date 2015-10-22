@@ -1,21 +1,17 @@
 import suspend from 'suspend';
-import nightmare from 'nightmare';
+import {nightmare} from '../util.js';
 
 export default {
-  fn: suspend.fn(function*(control) {
-    const screenshotPath = '/tmp/rentsoft.png';
-    yield nightmare({
-      width: 1600,
-      height: 900
-    })
+  fn: suspend.fn(function*(control, config) {
+    const n = nightmare(control);
+    yield n
       .goto('https://bo.rentsoft.ru')
       .type('#email', 'kro@velvica.com')
       .type('#password', '123456')
       .click('input[type="submit"]')
-      .wait('body')
-      .screenshot(screenshotPath)
-      .end();
-    yield control.file('screenshot1', screenshotPath, 'image/png');
+      .wait('body');
+    yield n.$screenshot('screenshot1');
+    yield n.end();
     control.success();
   }),
   name: 'core.velvica'

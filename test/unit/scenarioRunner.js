@@ -173,11 +173,12 @@ const scenarioFiles = [
   path.join(root, '../test/fixture/scenariosDir/file1.js'),
   path.join(root, '../test/fixture/scenariosDir/file2.js')
 ];
+const configPath = 'test/fixture/config-correct.json';
 
 describe('parallel execution', () => {
   it('should run forked scenario', (done) => {
     suspend.run(function*() {
-      const result = yield runForked(scenarioFiles[0]);
+      const result = yield runForked(scenarioFiles[0], configPath);
 
       check.object(result);
       assert.strictEqual('success', result.status);
@@ -189,7 +190,7 @@ describe('parallel execution', () => {
 
   it('should run scenario group', (done) => {
     suspend.run(function*() {
-      const results = yield runGroup(scenarioFiles);
+      const results = yield runGroup(scenarioFiles, configPath);
 
       check.array.of.object(results);
       assert.strictEqual('success', results[0].status);

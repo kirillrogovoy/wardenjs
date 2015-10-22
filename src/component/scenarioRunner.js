@@ -17,7 +17,7 @@ export function load(filePath) {
   return require(fullPath);
 }
 
-export function run(scenario) {
+export function run(scenario, config) {
   check.function(scenario.fn);
   check.string(scenario.name);
   return new Promise((resolve) => {
@@ -122,17 +122,20 @@ export function run(scenario) {
 
     process.on('uncaughtException', onErrorHandler);
     try {
-      scenario.fn(control);
+      scenario.fn(control, config);
     } catch (e) {
       onError(e);
     }
   });
 }
 
-export function runForked(scenarioFile) {
+export function runForked(scenarioFile, configPath) {
+  console.log(configPath);
   check.string(scenarioFile);
   return new Promise((resolve, reject) => {
-    const child = fork(path.join(root, 'index.js'), ['run', '--path', scenarioFile], {
+    const child = fork(
+      path.join(root, 'index.js'),
+      ['run', '--path', scenarioFile, '--config', configPath], {
       silent: global.silentFork !== undefined ? global.silentFork : false
     });
     child.on('error', reject);
@@ -146,6 +149,6 @@ export function runForked(scenarioFile) {
 
 }
 
-export function runGroup(scenarioFiles) {
-  return Promise.all(scenarioFiles.map(runForked));
+export function runGroup(scenarioFiles, configPath) {
+  return Promise.all(scenarioFiles.map((s) => runForked(s, configPath)));
 }

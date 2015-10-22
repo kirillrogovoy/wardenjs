@@ -24,10 +24,10 @@ export default suspend.fn(function*(commander) {
   const group = groups[groupName];
   let results = [];
   if (mode === 'async') {
-    results = yield runGroup(group);
+    results = yield runGroup(group, commander.config);
   } else {
     for (let scenarioFile of group) {
-      results.push(yield runForked(scenarioFile));
+      results.push(yield runForked(scenarioFile, commander.config));
     }
   }
   

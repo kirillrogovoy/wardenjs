@@ -12,11 +12,11 @@ import mime from 'mime';
 
 export default function (commander) {
   optionRequired('path');
-  if (commander.save) {
-    optionRequired('config');
-  }
+  optionRequired('config');
+  
   const filePath = commander.path;
   suspend.run(function*() {
+    const configObj = yield loadConfig(commander.config);
     console.log(`Trying to load the scenario under the ${filePath}`);
     const scenario = load(filePath);
     console.log('Loaded! Trying to start the scenario...');
@@ -31,7 +31,7 @@ export default function (commander) {
 
     formattedPrint(`Start: ${scenario.name} (${filePath})`);
     
-    const result = yield run(scenario);
+    const result = yield run(scenario, configObj);
     
     const statusColor = result.status === 'success' ? 'green' : 'red';
     console.log(`Status: ${result.status[statusColor]}.`);
@@ -86,7 +86,6 @@ export default function (commander) {
     }
     
     if (commander.save) {
-      const configObj = yield loadConfig(commander.config);
       const db = yield require('../component/daemon/postgres.js')(configObj.postgres);
 
       const transaction = yield db.transaction();
