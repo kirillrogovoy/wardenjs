@@ -174,29 +174,31 @@ const scenarioFiles = [
   path.join(root, '../test/fixture/scenariosDir/file2.js')
 ];
 
-it('should run forked scenario', (done) => {
-  suspend.run(function*() {
-    const result = yield runForked(scenarioFiles[0]);
+describe('parallel execution', () => {
+  it('should run forked scenario', (done) => {
+    suspend.run(function*() {
+      const result = yield runForked(scenarioFiles[0]);
 
-    check.object(result);
-    assert.strictEqual('success', result.status);
-  }, (err) => {
-    check.null(err);
-    done();
+      check.object(result);
+      assert.strictEqual('success', result.status);
+    }, (err) => {
+      check.null(err);
+      done();
+    });
   });
-});
 
-it('should run scenario group', (done) => {
-  suspend.run(function*() {
-    const results = yield runGroup(scenarioFiles);
+  it('should run scenario group', (done) => {
+    suspend.run(function*() {
+      const results = yield runGroup(scenarioFiles);
 
-    check.array.of.object(results);
-    assert.strictEqual('success', results[0].status);
-    assert.strictEqual('core.fixture.file1', results[0].name);
-    assert.strictEqual('success', results[1].status);
-    assert.strictEqual('core.fixture.file2', results[1].name);
-  }, (err) => {
-    check.null(err);
-    done();
+      check.array.of.object(results);
+      assert.strictEqual('success', results[0].status);
+      assert.strictEqual('core.fixture.file1', results[0].name);
+      assert.strictEqual('success', results[1].status);
+      assert.strictEqual('core.fixture.file2', results[1].name);
+    }, (err) => {
+      check.null(err);
+      done();
+    });
   });
 });

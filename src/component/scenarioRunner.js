@@ -138,6 +138,7 @@ export function runForked(scenarioFile) {
     child.on('error', reject);
     child.on('message', (result) => {
       if (result.type === 'SCENARIO_RESULT') {
+        child.kill();
         resolve(result.data);
       }
     });

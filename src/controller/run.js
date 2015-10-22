@@ -1,5 +1,6 @@
 import {optionRequired} from '../cli.js';
 import {run, load} from '../component/scenarioRunner.js';
+import {load as loadConfig} from '../component/config.js';
 import suspend from 'suspend';
 import 'colors';
 import os from 'os';
@@ -11,6 +12,9 @@ import mime from 'mime';
 
 export default function (commander) {
   optionRequired('path');
+  if (commander.save) {
+    optionRequired('config');
+  }
   const filePath = commander.path;
   suspend.run(function*() {
     console.log(`Trying to load the scenario under the ${filePath}`);
@@ -63,7 +67,7 @@ export default function (commander) {
       }
       
       console.log(
-        `There was ${result.files.length} file(s) attached.`,
+        `There were ${result.files.length} file(s) attached.`,
         `You can find them at: ${tmpDir.blue}`
       );
     }
@@ -71,7 +75,7 @@ export default function (commander) {
     formattedPrint(`End: ${scenario.name} (${filePath})`);
     
     /**
-     * If it's a child process, let's send the result to the master
+     * If it's a child process, let's send the result to the parent
      * process through IPC
      */
     if (process.send) {
@@ -79,6 +83,31 @@ export default function (commander) {
         type: 'SCENARIO_RESULT',
         data: result
       });
+    }
+    
+    if (commander.save) {
+      const configObj = yield loadConfig(commander.config);
+      const db = yield require('../component/daemon/postgres.js')(configObj.postgres);
+
+      const transaction = yield db.transaction();
+      const resultRow = yield db.models.result.create({
+        filePath,
+        name: result.name,
+        warning: result.warning,
+        info: result.info,
+        status: result.status,
+        finalMessage: result.finalMessage
+      }, {transaction});
+      if (result.files.length) {
+        yield Promise.all(result.files.map((file) => {
+          return db.models.file.create(
+            Object.assign({result_id: resultRow.id}, file),
+            { transaction }
+          );
+        }));
+      }
+      transaction.commit();
+      db.close();
     }
   });
 }
