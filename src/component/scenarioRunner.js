@@ -115,7 +115,7 @@ export function run(scenario, config) {
       return true;
     }
     
-    const timeoutSecs = 10;
+    const timeoutSecs = 30;
     timeoutId = setTimeout(() => {
       control.failure(`TIMEOUT: ${timeoutSecs} seconds.`);
     }, timeoutSecs * 1000);

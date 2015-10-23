@@ -6,6 +6,7 @@ import 'colors';
 import os from 'os';
 import fs from 'fs';
 import mkdirp from 'mkdirp';
+import rimraf from 'rimraf';
 import crypto from 'crypto';
 import path from 'path';
 import mime from 'mime';
@@ -60,6 +61,7 @@ export default function (commander) {
         crypto.createHash('md5').update(filePath).digest('hex')
       );
 
+      yield rimraf(tmpDir, suspend.resume());
       yield mkdirp(tmpDir, suspend.resume());
       for (let file of result.files) {
         const filePath = path.join(tmpDir, `${file.name}.${mime.extension(file.media)}`);
