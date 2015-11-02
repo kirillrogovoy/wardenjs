@@ -81,10 +81,10 @@ export default function (commander) {
      * process through IPC
      */
     if (process.send) {
-      process.send({
+      yield process.send({
         type: 'SCENARIO_RESULT',
         data: result
-      });
+      }, suspend.resume());
     }
     
     if (commander.save) {
@@ -110,5 +110,7 @@ export default function (commander) {
       transaction.commit();
       db.close();
     }
+    
+    process.exit();
   });
 }
