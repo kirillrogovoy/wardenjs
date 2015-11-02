@@ -1,4 +1,3 @@
-import suspend from 'suspend';
 import Sequelize from 'sequelize';
 
 export default function (config) {
