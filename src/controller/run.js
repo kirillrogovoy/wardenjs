@@ -63,8 +63,8 @@ export default function (commander) {
 
       yield rimraf(tmpDir, suspend.resume());
       yield mkdirp(tmpDir, suspend.resume());
-      for (let file of result.files) {
-        const filePath = path.join(tmpDir, `${file.name}.${mime.extension(file.media)}`);
+      for (let [i, file] of result.files.entries()) {
+        const filePath = path.join(tmpDir, `${i}_${file.name}.${mime.extension(file.media)}`);
         yield fs.writeFile(filePath, file.content, suspend.resume());
       }
       
