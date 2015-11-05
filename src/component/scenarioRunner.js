@@ -28,8 +28,11 @@ export function run(scenario, config) {
       info: [],
       status: null,
       files: [],
-      name: scenario.name
+      name: scenario.name,
+      time: null
     };
+    
+    let executionStartTime;
     
     const control = {
       warning(text) {
@@ -103,24 +106,30 @@ export function run(scenario, config) {
       process.removeListener('uncaughtException', onErrorHandler);
 
       check.string(status);
-      check.either.string(finalMessage).or.error(finalMessage);
+      if (typeof finalMessage !== 'string') finalMessage = Error(finalMessage);
       finalMessage = String(finalMessage);
       const statuses = ['success', 'failure'];
-      assert(statuses.indexOf(status) !== -1, `Status can be only one of this values: ${statuses}`);
+      assert(
+        statuses.indexOf(status) !== -1,
+        `Status can be only one of these values: ${statuses}`
+      );
       
       clearTimeout(timeoutId);
       result.finalMessage = finalMessage;
       result.status = status;
+      const timeDiff = process.hrtime(executionStartTime);
+      result.time = (timeDiff[0] + timeDiff[1] / 1e9); //s
       resolve(result);
       return true;
     }
     
-    const timeoutSecs = 30;
+    const timeoutSecs = parseInt(scenario.timeout, 10) || 30;
     timeoutId = setTimeout(() => {
       control.failure(`TIMEOUT: ${timeoutSecs} seconds.`);
     }, timeoutSecs * 1000);
 
     process.on('uncaughtException', onErrorHandler);
+    executionStartTime = process.hrtime();
     try {
       scenario.fn(control, config);
     } catch (e) {

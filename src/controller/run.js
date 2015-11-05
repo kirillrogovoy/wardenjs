@@ -58,7 +58,7 @@ export default function (commander) {
       const tmpDir = path.join(
         os.tmpdir(),
         'wardenjs_tmp',
-        crypto.createHash('md5').update(filePath).digest('hex')
+        `${result.name}_${crypto.createHash('md5').update(filePath).digest('hex').substring(0, 6)}`
       );
 
       yield rimraf(tmpDir, suspend.resume());
@@ -74,7 +74,7 @@ export default function (commander) {
       );
     }
     
-    formattedPrint(`End: ${scenario.name} (${filePath})`);
+    formattedPrint(`End: ${scenario.name} (${filePath}). Took ${result.time} seconds.`);
     
     /**
      * If it's a child process, let's send the result to the parent
