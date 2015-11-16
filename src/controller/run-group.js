@@ -42,8 +42,8 @@ export default suspend.fn(function*(commander) {
   
   if (failure.length) {
     console.log(
-      'Failed tests are:\n  ',
-      failure.map((f) => f.name.red).join(',  \n')
+      'Failed tests are:\n ',
+      failure.map((f) => `${f.name.red}: ${f.finalMessage}`).join(',\n  ')
     );
   }
 });
