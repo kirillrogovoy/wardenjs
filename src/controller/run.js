@@ -48,7 +48,7 @@ export default function (commander) {
           console.log(`\t${message}`[messageColor[type]]);
         }
       } else {
-        console.log(`There wasn\'t any ${type} messages`);
+        console.log(`There weren\'t any ${type} messages`);
       }
     }
     
