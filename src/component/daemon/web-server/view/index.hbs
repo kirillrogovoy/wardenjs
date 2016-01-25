@@ -1,0 +1,83 @@
+<html>
+    <head>
+        <title>WardenJS Daemon results</title>
+        <style>
+            .body-green {
+                background-color: #deffcf;
+            }
+            .body-red {
+                background-color: #ffcec2;
+            }
+            .result-error {
+                background-color: #ffb2a8;
+            }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
+        <script>
+            $(function() {
+                var tableTemplate = Handlebars.compile($('#tableTemplate').html());
+
+                function getResults() {
+                    $.ajax('/results.json', {
+                        success: function (results) {
+                            if (results.length) {
+                                $('#results-container').html(tableTemplate({ results: results }));
+
+                                if (results.filter(function(r) {
+                                    return r.is_failed;
+                                }).length) {
+                                    $('body')
+                                        .removeClass('body-green')
+                                        .addClass('body-red');
+                                }
+                            }
+                        }
+                    });
+                }
+
+                setInterval(function() {
+                    getResults();
+                }, 5000);
+                getResults();
+            });
+        </script>
+    </head>
+    <body class="body-green">
+        <h1>WardenJS Daemon results</h1>
+
+        <div id="results-container">
+            Waiting for first results.
+        </div>
+    </body>
+
+    <script type="text/x-handlebars-template" id="tableTemplate">
+        <table>
+        <thead><tr>
+            <td>ID</td>
+            <td>Created</td>
+            <td>File path</td>
+            <td>Name</td>
+            <td>Warning</td>
+            <td>Info</td>
+            <td>Status</td>
+            <td>Final message</td>
+            <td>Group name</td>
+        </tr></thead>
+        \{{#each results}}
+            <tr \{{#if is_failed}}class="result-error"\{{/if}}>
+                <td>\{{id}} - \{{is_failed}}</td>
+                <td>\{{created_at}}</td>
+                <td>\{{file_path}}</td>
+                <td>\{{name}}</td>
+                <td>\{{warning}}</td>
+                <td>\{{info}}</td>
+                <td>\{{status}}</td>
+                <td>\{{final_message}}</td>
+                <td>\{{group.name}}</td>
+            </tr>
+        \{{/each}}
+    </table>
+
+    </script>
+</html>

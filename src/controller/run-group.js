@@ -3,7 +3,7 @@ import suspend from 'suspend';
 import assert from 'assert';
 import * as config from '../component/config.js';
 import 'colors';
-import {runGroup, runForked} from '../component/scenarioRunner.js';
+import {runGroup, runForked} from '../component/scenarios.js';
 
 export default suspend.fn(function*(commander) {
   optionRequired('config');
@@ -11,7 +11,7 @@ export default suspend.fn(function*(commander) {
   const groupName = commander.group;
   const mode = commander.runMode || 'async';
   assert(['sync', 'async'].indexOf(mode) > -1);
-  
+
   console.log(`Trying to load the group: ${groupName}`);
   const configObj = yield config.load(commander.config);
   const scenarioFiles = config.getScenarioFiles(configObj.scenarioDirs);
@@ -20,7 +20,7 @@ export default suspend.fn(function*(commander) {
     console.error('Couldn\'t find the group. Here are existing groups:\n'.red +
     `${Object.keys(groups).join(', ').red}`);
   }
-  
+
   const group = groups[groupName];
   let results = [];
   if (mode === 'async') {
@@ -30,16 +30,16 @@ export default suspend.fn(function*(commander) {
       results.push(yield runForked(scenarioFile, commander.config));
     }
   }
-  
+
   const success = results.filter((r) => r.status === 'success');
   const failure = results.filter((r) => r.status === 'failure');
-  
+
   console.log(
     `\nGroup run has been finished! ${results.length} scenarios have been run.`.blue,
     `\n${success.length} passed`.green,
     `\n${failure.length} failed`.red
   );
-  
+
   if (failure.length) {
     console.log(
       'Failed tests are:\n ',

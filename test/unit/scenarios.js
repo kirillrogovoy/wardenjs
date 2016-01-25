@@ -3,7 +3,7 @@ import assert from 'assert';
 import path from 'path';
 import fs from 'fs';
 import {check, root} from '../../src/util.js';
-import {run, runForked, runGroup} from '../../src/component/scenarioRunner.js';
+import {run, runForked, runGroup, saveToDb} from '../../src/component/scenarios.js';
 
 const fixtureDir = path.join(root, '../test/fixture');
 const fixtureFile = path.join(fixtureDir, '/dog.png');
@@ -16,7 +16,7 @@ describe('scenarios runner', () => {
       run('garbage');
     }, Error);
   });
-  
+
   it('should run on empty scenario', (done) => {
     const warningMessage = 'warning, dude';
     const infoMessage = 'info, dude';
@@ -26,7 +26,7 @@ describe('scenarios runner', () => {
         control.info(infoMessage);
         control.success();
       }, name: 'test' });
-      
+
       check.object(result);
       assert.deepEqual([warningMessage], result.warning);
       assert.deepEqual([infoMessage], result.info);
@@ -36,12 +36,12 @@ describe('scenarios runner', () => {
       done();
     });
   });
-  
+
   it('should run correctly on double finish', (done) => {
     suspend.run(function*() {
       const result = yield run({ fn: (control) => {
         control.failure();
-       
+
         // scenario has finished, further control calls are ignored
         control.success();
         control.warning('test');
@@ -71,7 +71,7 @@ describe('scenarios runner', () => {
       done();
     });
   });
-  
+
   it('scenario with an error should fail', (done) => {
     suspend.run(function*() {
       const error = Error('oh my god');
@@ -85,7 +85,7 @@ describe('scenarios runner', () => {
       done();
     });
   });
-  
+
   it('files: bad input, invalid type', (done) => {
     suspend.run(function*() {
       yield run({ fn: (control) => {
@@ -166,7 +166,7 @@ describe('scenarios runner', () => {
       done();
     });
   });
-  
+
 });
 
 const scenarioFiles = [
@@ -199,6 +199,30 @@ describe('parallel execution', () => {
       assert.strictEqual('core.fixture.file2', results[1].name);
     }, (err) => {
       check.null(err);
+      done();
+    });
+  });
+});
+
+describe('database', () => {
+  it('should be saved to DB', (done) => {
+    suspend.run(function*() {
+      const db = yield require(
+        '../../src/component/daemon/postgres.js'
+      )(JSON.parse(fs.readFileSync(path.join(root, '../test/fixture/db-creds.json'))));
+      const result = yield run({ fn: (control) => {
+        control.warning('warning1');
+        control.info('info1');
+        control.info('info2');
+        control.success();
+      }, name: 'test' });
+
+      yield saveToDb(db, result, '/tmp/stub.js');
+
+      const record = yield db.models.result.findOne();
+      assert.strictEqual('success', record.status);
+      assert.deepEqual(['warning1'], record.warning);
+      assert.deepEqual(['info1', 'info2'], record.info);
       done();
     });
   });

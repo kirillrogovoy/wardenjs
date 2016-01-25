@@ -1,0 +1,5 @@
+{
+  "user": "postgres",
+  "password": "pg",
+  "database": "wardenjs-test"
+}

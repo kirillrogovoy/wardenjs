@@ -1,6 +1,7 @@
 import Sequelize from 'sequelize';
+import suspend from 'suspend';
 
-export default function (config) {
+export default suspend.promise(function*(config) {
   const sequelize = new Sequelize(config.database, config.user, config.password, {
     host: 'localhost',
     dialect: 'postgres',
@@ -13,16 +14,20 @@ export default function (config) {
   });
 
   sequelize.define('result', {
-    filePath: { type: Sequelize.STRING, allowNull: false },
+    file_path: { type: Sequelize.STRING, allowNull: false },
     name: { type: Sequelize.STRING, allowNull: false },
     warning: { type: Sequelize.ARRAY(Sequelize.STRING), allowNull: false },
     info: { type: Sequelize.ARRAY(Sequelize.STRING), allowNull: false },
     status: { type: Sequelize.ENUM('success', 'failure'), allowNull: false },
-    finalMessage: { type: Sequelize.STRING, allowNull: false }
+    final_message: { type: Sequelize.STRING, allowNull: false },
+    is_failed: {
+      type: new Sequelize.VIRTUAL(Sequelize.BOOLEAN),
+      get: function() { return this.get('status') === 'failure'; }
+    }
   });
 
   sequelize.define('group', {
-    name: { type: Sequelize.STRING, allowNull: false }
+    name: { type: Sequelize.STRING, allowNull: false, unique: true }
   });
 
   sequelize.define('file', {
@@ -36,5 +41,7 @@ export default function (config) {
     deferrable: Sequelize.Deferrable.INITIALLY_DEFERRED
   });
 
+  yield sequelize.sync({ force: true });
+
   return sequelize;
-}
+});

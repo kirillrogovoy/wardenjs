@@ -13,7 +13,7 @@ export function load(filePath) {
   } else {
     fullPath = path.join(process.cwd(), filePath);
   }
-  
+
   return require(fullPath);
 }
 
@@ -31,9 +31,9 @@ export function run(scenario, config) {
       name: scenario.name,
       time: null
     };
-    
+
     let executionStartTime;
-    
+
     const control = {
       warning(text) {
         return message(text, 'warning');
@@ -47,7 +47,7 @@ export function run(scenario, config) {
       file: suspend.promise(function*(name, input, media) {
         if (result.status !== null) throw Error('Scenario is already finished!');
         let fileContent;
-        
+
         check.string(name);
 
         if (typeof input === 'string') {
@@ -58,7 +58,7 @@ export function run(scenario, config) {
           if (!fileExists) {
             throw Error(`File '${input}' doesn't exist!`);
           }
-          
+
           fileContent = yield fs.readFile(input, suspend.resume());
         } else if (Buffer.prototype.isPrototypeOf(input)) {
           fileContent = input;
@@ -71,13 +71,13 @@ export function run(scenario, config) {
         if (!fileExtension) {
           throw Error(`Unknown mime type: ${media}`);
         }
-        
+
         result.files.push({
           name,
           media,
           content: fileContent
         });
-        
+
         return true;
       })
     };
@@ -93,7 +93,7 @@ export function run(scenario, config) {
       clearTimeout(timeoutId);
       onError(err);
     }
-    
+
     function message(text, type) {
       if (result.status !== null) return false;
       check.string(text);
@@ -113,7 +113,7 @@ export function run(scenario, config) {
         statuses.indexOf(status) !== -1,
         `Status can be only one of these values: ${statuses}`
       );
-      
+
       clearTimeout(timeoutId);
       result.finalMessage = finalMessage;
       result.status = status;
@@ -122,7 +122,7 @@ export function run(scenario, config) {
       resolve(result);
       return true;
     }
-    
+
     const timeoutSecs = parseInt(scenario.timeout, 10) || 30;
     timeoutId = setTimeout(() => {
       control.failure(`TIMEOUT: ${timeoutSecs} seconds.`);
@@ -160,3 +160,34 @@ export function runForked(scenarioFile, configPath) {
 export function runGroup(scenarioFiles, configPath) {
   return Promise.all(scenarioFiles.map((s) => runForked(s, configPath)));
 }
+
+export const saveToDb = suspend.promise(function*(db, result, filePath, groupName = null) {
+  const transaction = yield db.transaction();
+  if (groupName) {
+    yield db.models.group.upsert({ name: groupName }, { transaction });
+  }
+  const resultRow = yield db.models.result.create({
+    file_path: filePath,
+    name: result.name,
+    warning: result.warning,
+    info: result.info,
+    status: result.status,
+    final_message: result.finalMessage,
+    group_id: groupName ? (yield db.models.group.findOne({
+        where: {
+          name: groupName
+        },
+        transaction
+      }
+    )).id : null
+  }, {transaction});
+  if (result.files.length) {
+    yield Promise.all(result.files.map((file) => {
+      return db.models.file.create(
+        Object.assign({result_id: resultRow.id}, file),
+        { transaction }
+      );
+    }));
+  }
+  transaction.commit();
+});

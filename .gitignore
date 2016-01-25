@@ -2,3 +2,4 @@
 /.idea
 /lib/*
 /.log/*
+/test/fixture/db-creds.json

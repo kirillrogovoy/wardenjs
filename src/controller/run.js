@@ -1,5 +1,5 @@
 import {optionRequired} from '../cli.js';
-import {run, load} from '../component/scenarioRunner.js';
+import {run, load, saveToDb} from '../component/scenarios.js';
 import {load as loadConfig} from '../component/config.js';
 import suspend from 'suspend';
 import 'colors';
@@ -14,7 +14,7 @@ import mime from 'mime';
 export default function (commander) {
   optionRequired('path');
   optionRequired('config');
-  
+
   const filePath = commander.path;
   suspend.run(function*() {
     const configObj = yield loadConfig(commander.config);
@@ -31,12 +31,12 @@ export default function (commander) {
     }
 
     formattedPrint(`Start: ${scenario.name} (${filePath})`);
-    
+
     const result = yield run(scenario, configObj);
-    
+
     const statusColor = result.status === 'success' ? 'green' : 'red';
     console.log(`Status: ${result.status[statusColor]}.`);
-    
+
     const messageColor = {
       info: 'cyan',
       warning: 'yellow'
@@ -51,7 +51,7 @@ export default function (commander) {
         console.log(`There weren\'t any ${type} messages`);
       }
     }
-    
+
     console.log(`Final message: ${result.finalMessage.blue}.`);
 
     if (result.files.length) {
@@ -69,15 +69,15 @@ export default function (commander) {
           .join(tmpDir, `${('00' + i).slice(-2)}_${file.name}.${mime.extension(file.media)}`);
         yield fs.writeFile(filePath, file.content, suspend.resume());
       }
-      
+
       console.log(
         `There were ${result.files.length} file(s) attached.`,
         `You can find them at: ${tmpDir.blue}`
       );
     }
-    
+
     formattedPrint(`End: ${scenario.name} (${filePath}). Took ${result.time} seconds.`);
-    
+
     /**
      * If it's a child process, let's send the result to the parent
      * process through IPC
@@ -88,31 +88,13 @@ export default function (commander) {
         data: result
       }, suspend.resume());
     }
-    
-    if (commander.save) {
-      const db = require('../component/daemon/postgres.js')(configObj.postgres);
 
-      const transaction = yield db.transaction();
-      const resultRow = yield db.models.result.create({
-        filePath,
-        name: result.name,
-        warning: result.warning,
-        info: result.info,
-        status: result.status,
-        finalMessage: result.finalMessage
-      }, {transaction});
-      if (result.files.length) {
-        yield Promise.all(result.files.map((file) => {
-          return db.models.file.create(
-            Object.assign({result_id: resultRow.id}, file),
-            { transaction }
-          );
-        }));
-      }
-      transaction.commit();
+    if (commander.save) {
+      const db = yield require('../component/daemon/postgres.js')(configObj.postgres);
+      yield saveToDb(db, result, filePath);
       db.close();
     }
-    
+
     process.exit();
   });
 }
