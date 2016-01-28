@@ -19,7 +19,7 @@ export default suspend.promise(function*(config) {
     warning: { type: Sequelize.ARRAY(Sequelize.STRING), allowNull: false },
     info: { type: Sequelize.ARRAY(Sequelize.STRING), allowNull: false },
     status: { type: Sequelize.ENUM('success', 'failure'), allowNull: false },
-    final_message: { type: Sequelize.STRING, allowNull: false },
+    final_message: { type: Sequelize.STRING(10000), allowNull: false },
     is_failed: {
       type: new Sequelize.VIRTUAL(Sequelize.BOOLEAN),
       get: function() { return this.get('status') === 'failure'; }
