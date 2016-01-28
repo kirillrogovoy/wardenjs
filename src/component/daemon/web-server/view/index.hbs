@@ -16,6 +16,10 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
         <script>
             $(function() {
+                Handlebars.registerHelper('pretty_date', function(date) {
+                    return new Date(date).toString();
+                });
+
                 var tableTemplate = Handlebars.compile($('#tableTemplate').html());
 
                 function getResults() {
@@ -67,7 +71,7 @@
         \{{#each results}}
             <tr \{{#if is_failed}}class="result-error"\{{/if}}>
                 <td>\{{id}}</td>
-                <td>\{{created_at}}</td>
+                <td>\{{pretty_date created_at}}</td>
                 <td>\{{file_path}}</td>
                 <td>\{{name}}</td>
                 <td>\{{warning}}</td>
