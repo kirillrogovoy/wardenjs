@@ -57,31 +57,31 @@
 
     <script type="text/x-handlebars-template" id="tableTemplate">
         <table>
-        <thead><tr>
-            <td>ID</td>
-            <td>Created</td>
-            <td>File path</td>
-            <td>Name</td>
-            <td>Warning</td>
-            <td>Info</td>
-            <td>Status</td>
-            <td>Final message</td>
-            <td>Group name</td>
-        </tr></thead>
-        \{{#each results}}
-            <tr \{{#if is_failed}}class="result-error"\{{/if}}>
-                <td>\{{id}}</td>
-                <td>\{{pretty_date created_at}}</td>
-                <td>\{{file_path}}</td>
-                <td>\{{name}}</td>
-                <td>\{{warning}}</td>
-                <td>\{{info}}</td>
-                <td>\{{status}}</td>
-                <td>\{{final_message}}</td>
-                <td>\{{group.name}}</td>
-            </tr>
-        \{{/each}}
-    </table>
+            <thead><tr>
+                <td>ID</td>
+                <td>Created</td>
+                <td>File path</td>
+                <td>Name</td>
+                <td>Warning</td>
+                <td>Info</td>
+                <td>Status</td>
+                <td>Final message</td>
+                <td>Group name</td>
+            </tr></thead>
+            \{{#each results}}
+                <tr \{{#if is_failed}}class="result-error"\{{/if}}>
+                    <td>\{{id}}</td>
+                    <td>\{{pretty_date created_at}}</td>
+                    <td>\{{file_path}}</td>
+                    <td>\{{name}}</td>
+                    <td>\{{warning}}</td>
+                    <td>\{{info}}</td>
+                    <td>\{{status}}</td>
+                    <td><p>\{{final_message}}</p></td>
+                    <td>\{{group.name}}</td>
+                </tr>
+            \{{/each}}
+        </table>
 
     </script>
 </html>
