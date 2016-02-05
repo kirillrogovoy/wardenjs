@@ -3,7 +3,7 @@ import suspend from 'suspend';
 import path from 'path';
 import {root} from '../../../util.js';
 
-export const setup = suspend.promise(function*(config, db) {
+export const setupServer = suspend.promise(function*(config, db) {
   const app = express();
   const viewPath = path.join(root, '../src/component/daemon/web-server/view');
   app.set('views', viewPath);
