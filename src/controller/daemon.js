@@ -50,7 +50,7 @@ export default function watch(commander) {
     }
 
     log.info('Setting a web-server.');
-    yield webServer.setup(configObj, db);
+    yield webServer.setupServer(configObj, db);
 
     log.info('Files are ready, settings intervals.');
     setupIntervals(groupsFiles, groupsIntervals, commander.config, db);
