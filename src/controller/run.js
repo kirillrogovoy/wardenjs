@@ -52,7 +52,7 @@ export default function (commander) {
       }
     }
 
-    console.log(`Final message: ${result.finalMessage.blue}.`);
+    console.log(`Final message: ${result.finalMessage.yellow}.`);
 
     if (result.files.length) {
       const tmpDir = path.join(
@@ -72,7 +72,7 @@ export default function (commander) {
 
       console.log(
         `There were ${result.files.length} file(s) attached.`,
-        `You can find them at: ${tmpDir.blue}`
+        `You can find them at: ${tmpDir.yellow}`
       );
     }
 
