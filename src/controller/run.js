@@ -52,7 +52,7 @@ export default function (commander) {
       }
     }
 
-    console.log(`Final message: ${result.finalMessage.yellow}.`);
+    console.log(`Final message: ${result.finalMessage.yellow}`);
 
     if (result.files.length) {
       const tmpDir = path.join(
