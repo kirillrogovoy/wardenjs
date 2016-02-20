@@ -43,6 +43,18 @@ export function run(scenario, config) {
       },
       success(message = 'Passed') { return finish('success', message); },
       failure(message = 'Failed') { return finish('failure', message); },
+      step(stepNum) {
+        const description = scenario.description;
+        if (!description) {
+          throw Error('Scenario has no description, so you can\'t call control.step()');
+        }
+        if (!description[stepNum]) {
+          throw Error(`Unknown step number: ${stepNum}!` +
+            ` Scenario description has ${description.length} steps.`);
+        }
+
+        console.log(`Step: ${description[stepNum]}.`.green);
+      },
       /** input can be either a path or content **/
       file: suspend.promise(function*(name, input, media) {
         if (result.status !== null) throw Error('Scenario is already finished!');
