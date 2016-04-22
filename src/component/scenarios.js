@@ -57,7 +57,9 @@ export function run(scenario, config) {
       },
       /** input can be either a path or content **/
       file: suspend.promise(function*(name, input, media) {
-        if (result.status !== null) throw Error('Scenario is already finished!');
+        if (result.status !== null) {
+          throw Error('Error saving a file: scenario is already finished!');
+        }
         let fileContent;
 
         check.string(name);
