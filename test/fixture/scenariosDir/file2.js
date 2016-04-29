@@ -1,10 +1,10 @@
 module.exports = {
   fn: function wardenTest(control) {
-    control.warning('one');
-    control.warning('two');
-    control.info('three');
-    control.success();
+    control.warning('one')
+    control.warning('two')
+    control.info('three')
+    control.success()
   },
   name: 'core.fixture.file2'
-};
+}
 

@@ -1,11 +1,11 @@
-import bunyan from 'bunyan';
-import path from 'path';
-import PrettyStream from 'bunyan-prettystream';
+const bunyan = require('bunyan')
+const path = require('path')
+const PrettyStream = require('bunyan-prettystream')
 
-const prettyStdOut = new PrettyStream({ mode: 'dev' });
-prettyStdOut.pipe(process.stdout);
+const prettyStdOut = new PrettyStream({ mode: 'dev' })
+prettyStdOut.pipe(process.stdout)
 
-export default bunyan.createLogger({
+module.exports = bunyan.createLogger({
   name: 'APP',
   streams: [{
     level: 'trace',
@@ -17,4 +17,4 @@ export default bunyan.createLogger({
     period: '1d',
     count: 3
   }]
-});
+})

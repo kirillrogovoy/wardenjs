@@ -1,4 +1,4 @@
-import path from 'path';
-import checkTypes from 'check-types';
-export const root = path.join(__dirname, '../lib');
-export const check = checkTypes.assert;
+const checkTypes = require('check-types')
+
+module.exports.root = __dirname
+module.exports.check = checkTypes.assert

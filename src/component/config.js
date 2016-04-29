@@ -1,54 +1,56 @@
-import fs from 'fs';
-import path from 'path';
-import suspend from 'suspend';
-import assert from 'assert';
-import {root, check} from '../util.js';
-import readdirRecursive from 'recursive-readdir-sync';
+const fs = require('fs')
+const path = require('path')
+const suspend = require('suspend')
+const assert = require('assert')
+const {root, check} = require('../util.js')
+const readdirRecursive = require('recursive-readdir-sync')
 
-export function getScenarioFiles(scenarioDirs) {
-  check.array.of.string(scenarioDirs);
-  let files = [];
+module.exports.getScenarioFiles = function getScenarioFiles(scenarioDirs) {
+  check.array.of.string(scenarioDirs)
+  let files = []
   for (let scenarioDir of scenarioDirs) {
-    let fullPath = scenarioDir;
+    let fullPath = scenarioDir
     if (!path.isAbsolute(scenarioDir)) {
-      fullPath = path.join(root, scenarioDir);
+      fullPath = path.join(root, scenarioDir)
     }
-    
-    assert(fs.statSync(fullPath).isDirectory(), `${fullPath} is not a directory!`);
+
+    assert(fs.statSync(fullPath).isDirectory(), `${fullPath} is not a directory!`)
     files = files.concat(
       readdirRecursive(fullPath)
         .filter((item) => /^.*\.js$/.test(item))
         .map((item) => path.join(item))
-    );
+    )
   }
-  return files;
+  return files
 }
 
-export function getGroups(groups, scenarioFiles) {
-  if (groups == null) return {};
-  
-  check.object(groups);
+module.exports.getGroups = function getGroups(groups, scenarioFiles) {
+  if (!groups) {
+    return {}
+  }
+
+  check.object(groups)
   for (let groupName of Object.keys(groups)) {
-    const group = groups[groupName];
-    check.array.of.string(group);
+    const group = groups[groupName]
+    check.array.of.string(group)
     groups[groupName] = group.map((filePattern) => {
       return scenarioFiles.find((file) => {
-        return (new RegExp(filePattern).test(file));
-      });
-    });
+        return (new RegExp(filePattern).test(file))
+      })
+    })
   }
-  
-  return groups;
+
+  return groups
 }
 
-export function validate(config) {
-  check.object(config);
-  check.array.of.string(config.scenarioDirs, 'Malformed config.scenarioDirs');
-  const scenarioFiles = getScenarioFiles(config.scenarioDirs);
-  getGroups(config.groups, scenarioFiles);
+module.exports.validate = function validate(config) {
+  check.object(config)
+  check.array.of.string(config.scenarioDirs, 'Malformed config.scenarioDirs')
+  const scenarioFiles = module.exports.getScenarioFiles(config.scenarioDirs)
+  module.exports.getGroups(config.groups, scenarioFiles)
 }
 
-export const load = suspend.promise(function*(relativePath) {
-  const fullPath = path.join(process.cwd(), relativePath);
-  return JSON.parse(yield fs.readFile(fullPath, suspend.resume()));
-});
+module.exports.load = suspend.promise(function*(relativePath) {
+  const fullPath = path.join(process.cwd(), relativePath)
+  return JSON.parse(yield fs.readFile(fullPath, suspend.resume()))
+})

@@ -1,16 +1,24 @@
 {
-  "parser": "babel-eslint",
-  "env": {
-    "node": true,
-    "mocha": true,
-    "es6": true
+  "extends": "eslint",
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module"
   },
   "rules": {
-    "strict": 0,
-    "quotes": [
-      1,
-      "single"
-    ],
-    "new-cap": 0
+    "semi": [2, "never"],
+    "quotes": [2, "single", {"avoidEscape": true, "allowTemplateLiterals": true}],
+    "indent": ["error", 2, { "SwitchCase": 1 }],
+    "no-use-before-define": ["error", { "functions": false }],
+    "valid-jsdoc": ["error", {
+      "requireParamDescription": false,
+      "requireReturnDescription": false
+    }],
+    "new-cap": [2, { "capIsNew": false }],
+    "require-jsdoc": [2, {"require": { "FunctionDeclaration": false }}],
+    "no-undefined": [0]
+  },
+  "env": {
+    "node": true,
+    "es6": true
   }
 }

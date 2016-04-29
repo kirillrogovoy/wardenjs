@@ -1,15 +1,15 @@
-import path from 'path';
+const path = require('path')
 
-export default {
+module.exports = {
   fn: function wardenTest(control) {
-    control.warning('one');
-    control.warning('two');
-    control.info('three');
+    control.warning('one')
+    control.warning('two')
+    control.info('three')
     setTimeout(() => {
       control.file('dog', path.join(__dirname, '../../test/fixture/dog.png'), 'image/png')
         .then(() => control.success('I\'m OK!'))
-        .catch((err) => control.failure(err));
-    }, 1000);
+        .catch((err) => control.failure(err))
+    }, 1000)
   },
   name: 'core.wardenTest'
-};
+}
