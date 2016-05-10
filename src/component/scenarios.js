@@ -57,7 +57,7 @@ module.exports.run = function run(scenario, config) {
             ` Scenario description has ${description.length} steps.`)
         }
 
-        console.log(`Step: ${description[stepNum]}.`.green)
+        console.log(`Step ${stepNum}: ${description[stepNum]}.`.green)
       },
       /** input can be either a path or content **/
       file: suspend.promise(function*(name, input, media) {
