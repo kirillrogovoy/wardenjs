@@ -14,7 +14,7 @@ const runGroup = suspend.promise(function*(group, configPath, db, groupName) {
 })
 
 function setupIntervals(groupsFiles, groupsIntervals, configPath, db) {
-  for (let groupName of groupsFiles.keys()) {
+  for (let groupName of Object.keys(groupsFiles)) {
     const interval = groupsIntervals[groupName]
     console.log(`Setting group '${groupName}' to be executed one at ${interval} seconds.`)
     setInterval(
@@ -27,7 +27,7 @@ function setupIntervals(groupsFiles, groupsIntervals, configPath, db) {
 function initialRun(groups, configPath, db) {
   const promises = []
 
-  for (let groupName of groups.keys()) {
+  for (let groupName of Object.keys(groups)) {
     promises.push(runGroup(groups[groupName], configPath, db, groupName))
   }
 

@@ -34,9 +34,11 @@ module.exports.getGroups = function getGroups(groups, scenarioFiles) {
     const group = groups[groupName]
     check.array.of.string(group)
     groups[groupName] = group.map((filePattern) => {
-      return scenarioFiles.find((file) => {
-        return (new RegExp(filePattern).test(file))
-      })
+      const scenarioFile = scenarioFiles.find((file) => (new RegExp(filePattern).test(file)))
+      if (!scenarioFile) {
+        throw Error(`Couldn't find an appropriate scenario file for "${filePattern}"`)
+      }
+      return scenarioFile
     })
   }
 
