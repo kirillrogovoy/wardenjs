@@ -12,10 +12,9 @@ const fixtureFile = path.join(fixtureDir, '/dog.png')
 global.silentFork = true
 
 test('should fail on bad input', (t) => {
-  t.throws(() => {
-    run('garbage')
-  }, Error)
-  t.end()
+  return t.shouldFail(suspend.promise(function*() {
+    yield run('garbage')
+  })(), Error)
 })
 
 test('scenarios runner: should run on empty scenario', (t) => {
@@ -57,34 +56,35 @@ test('scenarios runner: should run correctly on double finish', (t) => {
 })
 
 test('scenarios runner: should run with bad async scenario', (t) => {
-  suspend.run(function*() {
-    const result = yield run({ fn: (control) => {
+  return suspend.promise(function*() {
+    const result = yield run({ fn: suspend.promise(function*(control) {
       setTimeout(() => {
         control.success()
       }, 10)
       throw Error('error')
-    }, name: 'test' })
+    }), name: 'test' })
 
-    assert(result.status, 'failure')
-    return result
-  }, (err) => {
-    check.null(err)
-    t.end()
-  })
+    t.assert(result.status, 'failure')
+  })()
 })
 
 test('scenarios runner: scenario with an error should fail', (t) => {
-  suspend.run(function*() {
+  return suspend.promise(function*() {
     const error = Error('oh my god')
-    const result = yield run({ fn: () => {
+    const result = yield run({ fn: suspend.promise(function*() {
       throw error
-    }, name: 'test' })
+    }), name: 'test' })
     t.equal('failure', result.status)
     t.true(result.finalMessage.startsWith('Scenario is broken!'))
-  }, (err) => {
-    check.null(err)
-    t.end()
-  })
+  })()
+})
+
+test('scenarios runner: scenario with a non-error promise should fail', (t) => {
+  return suspend.promise(function*() {
+    const result = yield run({ fn: () => Promise.resolve(true), name: 'test' })
+    t.equal('failure', result.status)
+    t.true(result.finalMessage.startsWith('Scenario returned'), 'Message should be appropriate')
+  })()
 })
 
 test('scenarios runner: files: bad input, invalid type', () => {
@@ -152,36 +152,34 @@ test('scenarios runner: files: bad media', () => {
 })
 
 test('scenarios runner: files: good input, file path', (t) => {
-  const media = 'image/png'
-  suspend.run(function*() {
-    const result = yield run({ fn: suspend.fn(function*(control) {
+  return suspend.promise(function*() {
+    const media = 'image/png'
+    const result = yield run({ fn: suspend.promise(function*(control) {
       const savingResult = yield control.file('test', fixtureFile, media)
-      assert(savingResult)
-      control.success()
+      t.assert(savingResult)
+      return control.success()
     }), name: 'test' })
-    assert.equal(result.files.length, 1)
-    assert.equal(result.files[0].name, 'test')
-    assert.equal(result.files[0].media, media)
-    assert(Buffer.prototype.isPrototypeOf(result.files[0].content))
-    t.end()
-  })
+    t.equal(result.files.length, 1)
+    t.equal(result.files[0].name, 'test')
+    t.equal(result.files[0].media, media)
+    t.assert(Buffer.prototype.isPrototypeOf(result.files[0].content))
+  })()
 })
 
 test('scenarios runner: files: good input, buffer', (t) => {
-  const media = 'image/png'
-  suspend.run(function*() {
-    const result = yield run({ fn: suspend.fn(function*(control) {
+  return suspend.promise(function*() {
+    const media = 'image/png'
+    const result = yield run({ fn: suspend.promise(function*(control) {
       const content = yield fs.readFile(fixtureFile, suspend.resume())
       const savingResult = yield control.file('test', content, media)
-      assert(savingResult)
+      t.assert(savingResult)
       control.success()
     }), name: 'test' })
-    assert.equal(result.files.length, 1)
-    assert.equal(result.files[0].name, 'test')
-    assert.equal(result.files[0].media, media)
-    assert(Buffer.prototype.isPrototypeOf(result.files[0].content))
-    t.end()
-  })
+    t.equal(result.files.length, 1)
+    t.equal(result.files[0].name, 'test')
+    t.equal(result.files[0].media, media)
+    t.assert(Buffer.prototype.isPrototypeOf(result.files[0].content))
+  })()
 })
 
 const scenarioFiles = [

@@ -18,9 +18,9 @@ module.exports.load = function load(filePath) {
 }
 
 module.exports.run = function run(scenario, config) {
-  check.function(scenario.fn)
-  check.string(scenario.name)
   return new Promise((resolve) => {
+    check.function(scenario.fn)
+    check.string(scenario.name)
     let timeoutId
     const result = {
       finalMessage: null,
@@ -154,11 +154,16 @@ module.exports.run = function run(scenario, config) {
 
     process.on('uncaughtException', onErrorHandler)
     executionStartTime = process.hrtime()
-    try {
-      scenario.fn(control, config)
-    } catch (e) {
-      onError(e)
-    }
+    const scenarioResult = scenario.fn(control, config)
+    assert(
+      scenarioResult &&
+      scenarioResult.then !== undefined, 'Scenario should always return a Promise!'
+    )
+    scenarioResult
+      .catch(onErrorHandler)
+      .then(() => {
+        control.failure(`Scenario returned a not-failed promise and success/failed was not called!`)
+      })
   })
 }
 
