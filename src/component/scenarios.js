@@ -47,17 +47,16 @@ module.exports.run = function run(scenario, config) {
       failure(text = 'Failed') {
         return finish('failure', text)
       },
-      step(stepNum) {
+      step(stepIndex) {
         const description = scenario.description
         if (!description) {
           throw Error('Scenario has no description, so you can\'t call control.step()')
         }
-        if (!description[stepNum]) {
-          throw Error(`Unknown step number: ${stepNum}!` +
-            ` Scenario description has ${description.length} steps.`)
+        if (!description[stepIndex]) {
+          throw Error(`Unknown step index: ${stepIndex}!`)
         }
 
-        console.log(`Step ${stepNum}: ${description[stepNum]}.`.green)
+        console.log(`Step "${stepIndex}": ${description[stepIndex]}.`.green)
       },
       /** input can be either a path or content **/
       file: suspend.promise(function*(name, input, media) {
