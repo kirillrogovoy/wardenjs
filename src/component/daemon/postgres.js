@@ -3,7 +3,7 @@ const suspend = require('suspend')
 
 module.exports = suspend.promise(function*(config) {
   const sequelize = new Sequelize(config.database, config.user, config.password, {
-    host: 'localhost',
+    host: config.host,
     dialect: 'postgres',
     define: {
       timestamps: true,
