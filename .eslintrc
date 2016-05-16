@@ -16,7 +16,10 @@
     "new-cap": [2, { "capIsNew": false }],
     "require-jsdoc": [2, {"require": { "FunctionDeclaration": false }}],
     "no-undefined": [0],
-    "no-var": [2]
+    "no-var": [2],
+    "no-underscore-dangle": [0],
+    "max-len": ["error", 100],
+    "object-shorthand": ["error", "always"]
   },
   "env": {
     "node": true,

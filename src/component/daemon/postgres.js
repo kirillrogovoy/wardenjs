@@ -22,7 +22,7 @@ module.exports = suspend.promise(function*(config) {
     final_message: { type: Sequelize.STRING(10000), allowNull: false },
     is_failed: {
       type: new Sequelize.VIRTUAL(Sequelize.BOOLEAN),
-      get: function() {
+      get() {
         return this.get('status') === 'failure'
       }
     }
