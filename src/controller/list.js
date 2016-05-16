@@ -8,8 +8,7 @@ module.exports = function(commander) {
     let configObj = yield config.load(commander.config)
     config.validate(configObj)
     const scenarioFiles = config.getScenarioFiles(configObj.scenarioDirs)
-    console.log(scenarioFiles
-      .join('\n'))
+    console.log(scenarioFiles.join('\n'))
 
     if (configObj.groups.length) {
       console.log('\nGroups:')
