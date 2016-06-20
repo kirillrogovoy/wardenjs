@@ -1,11 +1,11 @@
 {
   "name": "warden.js",
-  "version": "0.1.0",
-  "description": "Node based async queue-based system monitoring tool",
+  "version": "2.0.0",
+  "description": "Node based async testing and system monitoring tool",
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
-    "test": "blue-tape ./test/unit/** | faucet"
+    "test": "node ./test/unit/run.js | faucet"
   },
   "pre-commit": [
     "lint",
@@ -16,11 +16,11 @@
   "license": "MIT",
   "dependencies": {
     "blue-tape": "^0.2.0",
-    "bunyan": "^1.8.1",
-    "bunyan-prettystream": "^0.1.3",
     "check-types": "^6.0.0",
+    "co": "^4.6.0",
     "colors": "^1.1.2",
     "commander": "^2.9.0",
+    "debug": "^2.2.0",
     "eslint": "^2.8.0",
     "eslint-config-eslint": "^3.0.0",
     "express": "^4.13.4",
@@ -28,13 +28,13 @@
     "hbs": "^4.0.0",
     "mime": "^1.3.4",
     "mkdirp": "^0.5.1",
+    "mz": "^2.4.0",
     "pg": "^4.5.5",
     "pg-hstore": "^2.3.2",
     "pre-commit": "^1.1.2",
     "recursive-readdir-sync": "^1.0.6",
     "rimraf": "^2.5.2",
     "sequelize": "^3.22.0",
-    "suspend": "^0.7.0",
     "tape": "^4.5.1"
   },
   "devDependencies": {}

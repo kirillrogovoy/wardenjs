@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize')
-const suspend = require('suspend')
+const co = require('co')
 
-module.exports = suspend.promise(function*(config) {
+module.exports = co.wrap(function*(config) {
   const sequelize = new Sequelize(config.database, config.user, config.password, {
     host: config.host,
     dialect: 'postgres',

@@ -1,4 +1,3 @@
 /node_modules
 /.idea
 /.log/*
-/test/fixture/db-creds.json

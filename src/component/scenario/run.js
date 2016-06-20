@@ -1,26 +1,21 @@
-const {check, root} = require('../util.js')
+const {check} = require('../../util.js')
 const assert = require('assert')
 const path = require('path')
-const fs = require('fs')
-const suspend = require('suspend')
+const fs = require('mz/fs')
 const mime = require('mime')
-const {fork} = require('child_process')
+const co = require('co')
 
-module.exports.load = function load(filePath) {
-  let fullPath
-  if (path.isAbsolute(filePath)) {
-    fullPath = path.normalize(filePath)
-  } else {
-    fullPath = path.join(process.cwd(), filePath)
-  }
-
-  return require(fullPath)
-}
-
-module.exports.run = function run(scenario, config) {
-  return new Promise((resolve) => {
+module.exports = function run(scenario, outStream = null) {
+  return new Promise((resolve, reject) => {
     check.function(scenario.fn)
     check.string(scenario.name)
+    if (outStream !== null) {
+      check.equal(outStream.writable, true, 'Should be a writable stream!')
+    } else {
+      // Create a dummy writable steam
+      outStream = require('stream').Writable()
+      outStream._write = () => {}
+    }
     let timeoutId
     const result = {
       finalMessage: null,
@@ -41,12 +36,6 @@ module.exports.run = function run(scenario, config) {
       info(text) {
         return message(text, 'info')
       },
-      success(text = 'Passed') {
-        return finish('success', text)
-      },
-      failure(text = 'Failed') {
-        return finish('failure', text)
-      },
       step(stepIndex) {
         const description = scenario.description
         if (!description) {
@@ -59,7 +48,7 @@ module.exports.run = function run(scenario, config) {
         console.log(`Step "${stepIndex}": ${description[stepIndex]}.`.green)
       },
       /** input can be either a path or content **/
-      file: suspend.promise(function*(name, input, media) {
+      file: co.wrap(function*(name, input, media) {
         if (result.status !== null) {
           throw Error('Error saving a file: scenario is already finished!')
         }
@@ -71,12 +60,12 @@ module.exports.run = function run(scenario, config) {
           if (!path.isAbsolute(input)) {
             throw Error('path should be absolute!')
           }
-          const fileExists = yield fs.exists(input, suspend.resumeRaw())
+          const fileExists = yield fs.exists(input)
           if (!fileExists) {
             throw Error(`File '${input}' doesn't exist!`)
           }
 
-          fileContent = yield fs.readFile(input, suspend.resume())
+          fileContent = yield fs.readFile(input)
         } else if (Buffer.prototype.isPrototypeOf(input)) {
           fileContent = input
         } else {
@@ -96,19 +85,26 @@ module.exports.run = function run(scenario, config) {
         })
 
         return true
-      })
+      }),
+      stream: outStream
     }
 
-    function onError(err) {
-      control.failure(
+    function onErrorHandler(err) {
+      clearTimeout(timeoutId)
+      finish(
+        'failure',
         'Scenario is broken! There was an unexpected error.\n' +
         `Stack: ${err.stack}\n`
       )
     }
 
-    function onErrorHandler(err) {
+    function onRejectionHandler(reason) {
       clearTimeout(timeoutId)
-      onError(err)
+      finish(
+        'failure',
+        'Scenario is broken! There was an unhandled rejection.\n' +
+        `Stack: ${reason}\n`
+      )
     }
 
     function message(text, type) {
@@ -125,17 +121,20 @@ module.exports.run = function run(scenario, config) {
         return false
       }
       process.removeListener('uncaughtException', onErrorHandler)
+      process.removeListener('unhandledRejection', onRejectionHandler)
 
       check.string(status)
-      if (typeof finalMessage !== 'string') {
-        finalMessage = Error(finalMessage)
-      }
-      finalMessage = String(finalMessage)
-      const statuses = ['success', 'failure']
+      const statuses = new Set(['success', 'failure'])
       assert(
-        statuses.indexOf(status) !== -1,
+        statuses.has(status),
         `Status can be only one of these values: ${statuses}`
       )
+
+      if (!finalMessage) {
+        finalMessage = status === 'success' ? 'Passed.' : 'Failed.'
+      } else if (typeof finalMessage !== 'string') {
+        finalMessage = String(finalMessage)
+      }
 
       clearTimeout(timeoutId)
       result.finalMessage = finalMessage
@@ -148,74 +147,27 @@ module.exports.run = function run(scenario, config) {
 
     const timeoutSecs = parseInt(scenario.timeout, 10) || 30
     timeoutId = setTimeout(() => {
-      control.failure(`TIMEOUT: ${timeoutSecs} seconds.`)
+      reject(`TIMEOUT: ${timeoutSecs} seconds.`)
     }, timeoutSecs * 1000)
 
-    process.on('uncaughtException', onErrorHandler)
+    process.prependOnceListener('uncaughtException', onErrorHandler)
+    process.prependOnceListener('unhandledRejection', onRejectionHandler)
     executionStartTime = process.hrtime()
-    const scenarioResult = scenario.fn(control, config)
+    const scenarioResult = scenario.fn(control)
     assert(
       scenarioResult &&
       scenarioResult.then !== undefined, 'Scenario should always return a Promise!'
     )
     scenarioResult
+      .then((response) => {
+        if (!Array.isArray(response) || response.length < 1) {
+          throw Error(
+            'Wrong scenario result! Should be [status, finalMessage (optional)] ' +
+            `${typeof response} returned.`
+          )
+        }
+        finish.apply(null, response)
+      })
       .catch(onErrorHandler)
-      .then(() => {
-        control.failure(`Scenario returned a not-failed promise and success/failed was not called!`)
-      })
   })
 }
-
-module.exports.runForked = function runForked(scenarioFile, configPath) {
-  check.string(scenarioFile)
-  return new Promise((resolve, reject) => {
-    const child = fork(
-      path.join(root, 'index.js'),
-      ['run', '--path', scenarioFile, '--config', configPath], {
-        silent: global.silentFork !== undefined ? global.silentFork : false
-      })
-    child.on('error', reject)
-    child.on('message', (result) => {
-      if (result.type === 'SCENARIO_RESULT') {
-        child.kill()
-        resolve(result.data)
-      }
-    })
-  })
-
-}
-
-module.exports.runGroup = function runGroup(scenarioFiles, configPath) {
-  return Promise.all(scenarioFiles.map((s) => module.exports.runForked(s, configPath)))
-}
-
-module.exports.saveToDb = suspend.promise(function*(db, result, filePath, groupName = null) {
-  const transaction = yield db.transaction()
-  if (groupName) {
-    yield db.models.group.upsert({ name: groupName }, { transaction })
-  }
-  const resultRow = yield db.models.result.create({
-    file_path: filePath,
-    name: result.name,
-    warning: result.warning,
-    info: result.info,
-    status: result.status,
-    final_message: result.finalMessage,
-    group_id: groupName ? (yield db.models.group.findOne({
-      where: {
-        name: groupName
-      },
-      transaction
-    }
-    )).id : null
-  }, {transaction})
-  if (result.files.length) {
-    yield Promise.all(result.files.map((file) => {
-      return db.models.file.create(
-        Object.assign({result_id: resultRow.id}, file),
-        { transaction }
-      )
-    }))
-  }
-  transaction.commit()
-})
