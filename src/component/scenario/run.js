@@ -103,7 +103,7 @@ module.exports = function run(scenario, outStream = null) {
       finish(
         'failure',
         'Scenario is broken! There was an unhandled rejection.\n' +
-        `Stack: ${reason}\n`
+        `Stack: ${reason.stack}\n`
       )
     }
 
