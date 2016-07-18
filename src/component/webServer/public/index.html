@@ -153,7 +153,7 @@
                         <tbody>
                             <tr><td>Scenario</td><td>{data.filePath}</td></tr>
                             <tr><td>Description</td><td>
-                                <pre>{description.map((v, k) => `${k}. ${v}`).join('\n')}</pre>
+                                <pre>{description.map((v, k) => `${k + 1}. ${v}`).join('\n')}</pre>
                             </td></tr>
                             <tr><td>Status</td><td className={`bg-status-${data.status}`}>
                                 {data.status}
