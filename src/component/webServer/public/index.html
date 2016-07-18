@@ -114,10 +114,7 @@
                     return <b>Loading... (check console if it doesn't go away)</b>
                 }
 
-                let description = data.description
-                if (!description) {
-                    description = []
-                }
+                let description = data.description || []
                 if (!Array.isArray(description)) {
                     description = Object.keys(description).map(k => description[k])
                 }
