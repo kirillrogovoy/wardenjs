@@ -115,6 +115,9 @@
                 }
 
                 let description = data.description
+                if (!description) {
+                    description = []
+                }
                 if (!Array.isArray(description)) {
                     description = Object.keys(description).map(k => description[k])
                 }
