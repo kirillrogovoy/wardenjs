@@ -12,7 +12,14 @@ module.exports = function(options = {port: 9998, limit: 30}) {
   const state = create(options.limit)
   koaRouter
     .get('/state', function* getStateAll() {
-      this.body = state.getState().toJS()
+      this.body = state.getState()
+        .set('scenarios', state.getState().get('scenarios').map(scenario => {
+          if (scenario.get('result').has('files')) {
+            scenario = scenario.set('result', scenario.get('result').remove('files'))
+          }
+          return scenario
+        }))
+        .toJS()
     })
     .get('/state/:id', function* getState() {
       this.body = state.getState().toJS().scenarios.find((s) => s.__id === this.params.id)
