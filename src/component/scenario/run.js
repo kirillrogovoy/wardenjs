@@ -8,7 +8,6 @@ const co = require('co')
 module.exports = function run(scenario, outStream = null) {
   return new Promise((resolve, reject) => {
     check.function(scenario.fn)
-    check.string(scenario.name)
     if (outStream !== null) {
       check.equal(outStream.writable, true, 'Should be a writable stream!')
     } else {
@@ -23,7 +22,6 @@ module.exports = function run(scenario, outStream = null) {
       info: [],
       status: null,
       files: [],
-      name: scenario.name,
       time: null
     }
 

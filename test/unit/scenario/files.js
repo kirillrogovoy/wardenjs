@@ -2,7 +2,7 @@ const co = require('co')
 const path = require('path')
 const fs = require('mz/fs')
 const {check, root} = require('../../../src/util.js')
-const {run} = require('../../../src/component/scenario/index.js')
+const run = require('../../../src/component/scenario/run.js')
 const test = require('blue-tape')
 
 const fixtureDir = path.join(root, '../test/fixture')

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WardenJS Results page</title>
+    <script src="/react.js"></script>
+    <script src="/react-dom.js"></script>
+    <script src="https://npmcdn.com/react-router/umd/ReactRouter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.10.3/babel.min.js"></script>
+    <script
+        src="http://code.jquery.com/jquery-2.2.4.min.js"
+        integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+        crossorigin="anonymous"
+    ></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link
+        href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7"
+        crossorigin="anonymous"
+    />
+    <style type="text/css">
+        .bg-status-success {
+            background-color: rgba(0, 255, 0, 0.16);
+        }
+        .bg-status-failure {
+            background-color: rgba(255, 0, 0, 0.16);
+        }
+        td, th {
+            padding: 5px;
+        }
+        table {
+            width: 90%;
+            margin: auto;
+        }
+    </style>
+    <script type="text/babel">
+        'use strict'
+        const { Router, Route, IndexRoute, Link, browserHistory } = window.ReactRouter
+
+        function Root({children}) {
+            return <div>{children}</div>
+        }
+
+        const ScenariosPage = React.createClass({
+            render() {
+                return <div>
+                    <h1>Scenarios (Limited to {this.state.options.limit} scenarios)</h1>
+                    <ScenarioList scenarios={this.state.scenarios} />
+                </div>
+            },
+            getInitialState() {
+                return { scenarios: [], options: {} }
+            },
+            componentDidMount() {
+                const _this = this
+                fetchOptions(_this)
+                fetchScenarios(_this)
+                const timerId = setInterval(() => {
+                    fetchScenarios(_this)
+                }, 3000)
+
+                _this.setState({timerId})
+            },
+            componentWillUnmount() {
+                clearInterval(this.state.timerId)
+            }
+        })
+
+        function fetchScenarios(ctx) {
+            $.ajax('/state').then(({scenarios}) => {
+                return ctx.setState({scenarios})
+            })
+        }
+
+        function fetchOptions(ctx) {
+            $.ajax('/options').then((options) => {
+                return ctx.setState({options})
+            })
+        }
+
+        function ScenarioList({scenarios}) {
+            return <table className="table">
+                <thead><tr>
+                    <th>ID</th>
+                    <th>Scenario</th>
+                    <th>Status</th>
+                    <th>Started at</th>
+                    <th>Took, seconds</th>
+                </tr></thead>
+                <tbody>
+                    {scenarios.map((scenario) =>
+                        <ScenarioItem key={scenario.__id} data={scenario} />
+                    )}
+                </tbody>
+            </table>
+        }
+
+        function ScenarioItem({data}) {
+            return <tr className={`bg-status-${data.status}`}>
+                <td><Link to={`/scenario/${data.__id}`}>{data.__id}</Link></td>
+                <td>{data.filePath}</td>
+                <td>{data.status}</td>
+                <td>{data.startedAt}</td>
+                <td>{data.result.time || '...'}</td>
+            </tr>
+        }
+
+        const ScenarioDetailedPage = React.createClass({
+            render() {
+                const data = this.state.scenario
+
+                if (data === null) {
+                    return <b>Unknown scenario ID or error occurred while rendering</b>
+                }
+
+                let description = data.description
+                if (!Array.isArray(description)) {
+                    description = Object.keys(description).map(k => description[k])
+                }
+
+                const warnings = data.result.warning
+                    ? data.result.warning.map((v, k) => `${k + 1}. ${v}`).join('\n')
+                    : ''
+
+                const infos = data.result.info
+                    ? data.result.info.map((v, k) => `${k + 1}. ${v}`).join('\n')
+                    : ''
+
+                const screenshots = data.result.files
+                    ? data.result.files
+                        .filter((f) => f.media.indexOf('image') !== -1)
+                        .map((f) => <div key={f.name} className="list-group-item">
+                            <button
+                                type="button"
+                                className="btn btn-link btn-xs"
+                                data-toggle="collapse"
+                                data-target={`#modal-${f.name}`}
+                                aria-expanded="false"
+                                aria-controls="screenshots"
+                            >
+                                {f.name}
+                            </button>
+                            <div className="collapse" id={`modal-${f.name}`} aria-controls="screenshots">
+                                <img style={{width: '100%'}} src={`data:${f.media};base64,${f.content}`} />
+                            </div>
+                        </div>)
+                    : ''
+
+                return <div>
+                    <h1>Scenario: {this.props.params.id} | <Link to="/">Back</Link></h1>
+                    <table className="table">
+                        <tbody>
+                            <tr><td>Scenario</td><td>{data.filePath}</td></tr>
+                            <tr><td>Description</td><td>
+                                <pre>{description.map((v, k) => `${k}. ${v}`).join('\n')}</pre>
+                            </td></tr>
+                            <tr><td>Status</td><td className={`bg-status-${data.status}`}>
+                                {data.status}
+                            </td></tr>
+                            <tr><td>Started at</td><td>{data.startedAt}</td></tr>
+                            <tr><td>Took, seconds</td><td>{data.result.time || '...'}</td></tr>
+                            <tr><td>Warnings</td><td><pre>{warnings}</pre></td></tr>
+                            <tr><td>Info</td><td><pre>{infos}</pre></td></tr>
+                            <tr><td>Screenshots</td><td><div className="list-group">
+                                {screenshots}
+                            </div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            },
+            getInitialState() {
+                return { scenario: null }
+            },
+            componentDidMount() {
+                const _this = this
+                fetchScenario(this, this.props.params.id)
+                const timerId = setInterval(() => {
+                    fetchScenario(_this, this.props.params.id)
+                }, 3000)
+
+                _this.setState({timerId})
+            },
+            componentWillUnmount() {
+                clearInterval(this.state.timerId)
+            }
+        })
+
+        function fetchScenario(ctx, id) {
+            $.ajax(`/state/${id}`).then((scenario) => {
+                return ctx.setState({scenario})
+            })
+        }
+
+        function NotFound() {
+            return <b>Not Found</b>
+        }
+
+        ReactDOM.render(
+            <Router history={browserHistory}>
+                <Route path="/" component={Root}>
+                    <IndexRoute component={ScenariosPage} />
+                    <Route path="/scenario/:id" component={ScenarioDetailedPage} />
+                    <Route path="*" component={NotFound} />
+                </Route>
+            </Router>,
+            document.getElementById('container')
+        );
+    </script>
+</head>
+<body>
+    <div id="container"></div>
+</body>
+</html>

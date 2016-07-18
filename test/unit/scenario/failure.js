@@ -1,5 +1,5 @@
 const co = require('co')
-const {run} = require('../../../src/component/scenario/index.js')
+const run = require('../../../src/component/scenario/run.js')
 const test = require('blue-tape')
 
 test('should fail on bad input', (t) => {
@@ -54,7 +54,7 @@ test('scenarios runner: scenario with an error should fail', (t) => {
   })
 })
 
-test('scenario runner: both sync and async errors', (t) => {
+test('scenarios runner: both sync and async errors', (t) => {
   return co(function*() {
     const result = yield run({ fn: co.wrap(function*() {
       setImmediate(() => {
@@ -67,7 +67,6 @@ test('scenario runner: both sync and async errors', (t) => {
       })
       throw Error('sync')
     }), name: 'test' })
-    t.comment(result.finalMessage)
     t.equal('failure', result.status)
     t.true(result.finalMessage.indexOf('async') !== -1)
   })
